@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!--<script src="{% static 'css/bootstrap.min.js' %}"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'Index' %}">FoodTracker</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'loadfood' %}">Add Food</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Delete Food</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Pricing</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled">Disabled</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="row">
+        <div class="col-sm-10">
+            <label class="form-label">Food Consumed progress bar</label>
+           <div class="progress">
+               <div id="progress-bar" class="progress-bar progress-bar-striped" role="progressbar" style="width: " aria-valuenow="0" aria-valuemin="0" aria-valuemax="1500"></div>
+           </div>
+        </div>
+    </div><br>
+    <div class="row">
+        <div class="col-md-12">
+            <form method="post">
+               {% csrf_token %}
+
+                <label class="col-md-2 form-label">Select the food item here</label>
+
+
+                    <select name="food_consume" id="food_consume" class="col-md-6 form-select">
+                        {% for f in food %}
+                        <option value="{{f.name}}">{{f.name}}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class=" col-md-3 btn btn-success">Add Food</button>
+
+            </form>
+        </div>
+    </div><br>
+    <div class="row">
+        <div class="col-md-6">
+            <table id="table" class="table table-stripe table-success">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Carbohydrate</th>
+                        <th>Fats</th>
+                        <th>Protein</th>
+                        <th>Calories</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   {% for food in food_item %}
+                        <tr>
+                            <td>{{food.food_consume.name}}</td>
+                            <td>{{food.food_consume.carbs}}</td>
+                            <td>{{food.food_consume.fats}}</td>
+                            <td>{{food.food_consume.protein}}</td>
+                            <td>{{food.food_consume.calories}}</td>
+                            <td><a href="{% url 'delFood' food.id %}" class="btn btn-danger">Delete</a></td>
+                        </tr>
+                   {% endfor %}
+                    <tr>
+                        <td id="1"><b>Total</b></td>
+                        <td id="carbs"><b> </b></td>
+                        <td id="fats"><b> </b></td>
+                        <td id="pro"><b> </b></td>
+                        <td id="cal"><b> </b></td>
+                        <td><b> </b></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h2>Food consumed data in Pychart</h2>
+            <div>
+              <canvas id="myChart" height="400" width="400"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+
+<script type="text/javascript">
+    table=document.getElementById("table")
+    var carbs=0,fats=0,protein=0,calori=0;
+    for(var i=1; i<table.rows.length-1; i++)
+    {
+
+        carbs=carbs+parseFloat(table.rows[i].cells[1].innerHTML);
+        carbs=Math.round(carbs)
+        fats=fats+parseFloat(table.rows[i].cells[2].innerHTML);
+        fats=Math.round(fats)
+        protein=protein+parseFloat(table.rows[i].cells[3].innerHTML);
+        protein=Math.round(protein)
+        calori=calori+parseFloat(table.rows[i].cells[4].innerHTML);
+        calori=Math.round(calori)
+    }
+
+    document.getElementById("carbs").innerHTML=carbs;
+    document.getElementById("fats").innerHTML=fats;
+    document.getElementById("pro").innerHTML=protein;
+    document.getElementById("cal").innerHTML=calori;
+
+    calpercen=(calori/1500)*100;
+    document.getElementById("progress-bar").setAttribute("style","width: "+calpercen+"%");
+
+    totnutrient=carbs+fats+protein+calori
+    percarbs=parseFloat(carbs/totnutrient)*100
+    perfats=parseFloat(fats/totnutrient)*100
+    perprotein=parseFloat(protein/totnutrient)*100
+    percalori=parseFloat(calori/totnutrient)*100
+    const ctx = document.getElementById('myChart');
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Carbohydrate', 'Fats', 'Protein', 'Calories'],
+          datasets: [{
+            label: '# of Votes',
+            data: [percarbs, perfats, perprotein, percalori],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+
+
+</script>
+
+</html>
+
+<!--Install git
+Steps to push your project into github:
+
+1. Generate your key
+2. create a new repository
+3. git init
+4. git status
+5. git add -A
+6. git commit -m "Comments...."
+7. git push -u origin master-->
